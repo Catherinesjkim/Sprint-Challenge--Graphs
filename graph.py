@@ -33,8 +33,7 @@ class Graph:
         # the vertex passed to us is going to be a room id number
         if vertex not in self.vertices:
             self.vertices[vertex] = {'n': '?', 's': '?', 'e': '?', 'w': '?'}
-            
-            
+                 
     """
     Add an edge to the vertex
     

@@ -1,3 +1,4 @@
+# 1. World generation code. DO NOT MODIFY THIS!
 from room import Room
 import random
 import math

@@ -1,14 +1,14 @@
+# It's a built-in library of python we will use to generate random points
+import random
 from room import Room
 from player import Player
 from world import World
 from graph import Graph
 from util import Stack
-import random
 from ast import literal_eval
 
-# Load world - 1. World generation code. DO NOT MODIFY THIS!
+# Load world - 1. pulling in from the world generation code
 world = World()
-
 
 # You may uncomment the smaller graphs for development and testing purposes.
 map_file = "maps/test_line.txt"
@@ -26,41 +26,76 @@ world.print_rooms()
 
 player = Player(world.starting_room)
 
-
 # 2. An incomplete list of directions. Your task is to fill this with valid traversal directions
-# Fill this out with directions to walk
+# Fill this out with directions to walk, when walked in order, will visit every room on the map at least once
 # traversal_path = ['n', 'n']
-# traversal_path = []
 """
 Traverse maze in a DFT
+You may find the commands `player.current_room.id`, `player.current_room.get_exits()` and `player.travel(direction)` useful
 """
 def build_path(graph):
-   # stack that contains our current path
-   s = Stack()
-   # array that contains our returned paths
-   moves = []
-   # helps us determine if we hit a dead end
-   visited = set()
-   # initialize traversal with the 0 index room
-   s.push(0)
+    # stack that contains our current path
+    s = Stack()
+    # array that contains our returned paths
+    moves = []
+    # helps us determine if we hit a dead end
+    visited = set()
+    # initialize traversal with the 0 index room
+    s.push(0)
    
-   while len(visited) < len(graph):
-       # get the id of the current room in the Stack
-       id = s.tail()
-       # mark as visited
-       visited.add(id)
-       # get information of the current room (tuple data)
-       
-
-
-def build_traversal(player, traversal_path):
-    # create a graph class
-    graph = Graph()
+    while len(visited) < len(graph):
+        # get the id of the current room in the Stack
+        id = s.tail()
+        # mark as visited room/vertex/node
+        visited.add(id)
+        # get information of the current room (tuple data)
+        current_room = graph[id]
+        # dictionary of possible moves
+        rooms_dict = current_room[1]
+        # array to track if a room has not been visited yet
+        undiscovered = []
+        # store undiscovered rooms in relationship to the current room
+        for direction, room_id in rooms_dict.items():
+            if room_id not in visited:
+                undiscovered.append(room_id)
+        # assign the next room
+        # if we reched a dead end, back track
+        if len(undiscovered) > 0:
+            next_room = undiscovered[0]
+            s.push(next_room)
+        else:
+            s.pop()
+            next_room = s.tail()
+           
+        # survey the rooms around our current room. 
+        for direction, adjacent_id in rooms_dict.items():
+            # If the next move matches the room_id,
+            if adjacent_id == next_room:
+                # add that to move and walk
+                moves.append(direction)
     
-    for i in player.current_room.get_exists():
-        print("FROM FUNCTION: ", i)
+    return moves
+
+traversal_path = build_path(room_graph)
+
+
+"""
+To solve this path, you'll want to construct your own traversal graph. You start in room `0`, which contains exits `['n', 's', 'w', 'e']`. Your starting graph should look something like this:
+```
+{
+  0: {'n': '?', 's': '?', 'w': '?', 'e': '?'}
+}
+```
+"""
+# def build_traversal(player, traversal_path):
+    # create a graph class - pulling in from graph file
+#     graph = Graph()
+    
+#     for i in player.current_room.get_exists():
+#         print("FROM FUNCTION: ", i)
         
-build_traversal(player, traversal_path)
+# build_traversal(player, traversal_path)
+
 
 
 # TRAVERSAL TEST - DO NOT MODIFY
@@ -81,7 +116,7 @@ else:
 
 
 #######
-# UNCOMMENT TO WALK AROUND
+# UNCOMMENT TO WALK AROUND - REPL code to walk around the map
 #######
 # player.current_room.print_room_description(player)
 # while True:
