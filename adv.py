@@ -1,4 +1,17 @@
-# It's a built-in library of python we will use to generate random points
+"""
+Write most of my code here
+
+neighbor: any adjacent room - each room has a function. Get exits. You can use the rooms themselves to figure out where to go next without the player
+
+Algo:
+start from room 0, discover the entire set of rooms. When you go North: populate that value of the room --> Adjacency list. Done if I have 500 keys and no question marks. 
+
+1. Use BFS when stuck to find empty room - not explored yet. Can't find one? Done with searching. If you use player, you might get lost. Do BFS first on all the rooms without the player (Human can't move BFS way). Those are the paths -->
+
+2. Use DFT in general - no more door to go to, at the end of the traversal. You can't teleport from one room to another. Gotta back track from current room to the unvisited room. You need to know when to end or start a traversal. I can use the player here. 
+
+"""
+# random is a built-in library of python we will use to generate random points
 import random
 from room import Room
 from player import Player
@@ -11,10 +24,27 @@ from ast import literal_eval
 world = World()
 
 # You may uncomment the smaller graphs for development and testing purposes.
-map_file = "maps/test_line.txt"
+
+# Output: TESTS PASSED: 3 moves, 3 rooms visited
+# map_file = "maps/test_line.txt"
+
+# Output: TESTS PASSED: 15 moves, 9 rooms visited
 # map_file = "maps/test_cross.txt"
+
+# Output: TESTS PASSED: 21 moves, 12 rooms visited
 # map_file = "maps/test_loop.txt"
-# map_file = "maps/test_loop_fork.txt"
+
+"""
+Output: You cannot move in that direction.
+You cannot move in that direction.
+You cannot move in that direction.
+TESTS FAILED: INCOMPLETE TRAVERSAL
+2 unvisited rooms
+"""
+map_file = "maps/test_loop_fork.txt"
+
+# * __2__: Tests pass with `len(traversal_path) <= 2000`
+# Output: TESTS PASSED: 997 moves, 500 rooms visited
 # map_file = "maps/main_maze.txt"
 
 # Loads the map into a dictionary
@@ -31,6 +61,13 @@ player = Player(world.starting_room)
 # traversal_path = ['n', 'n']
 """
 Traverse maze in a DFT
+
+To solve this path, you'll want to construct your own traversal graph. You start in room `0`, which contains exits `['n', 's', 'w', 'e']`. Your starting graph should look something like this:
+    ```
+    {
+        0: {'n': '?', 's': '?', 'w': '?', 'e': '?'}
+    }
+    ```
 You may find the commands `player.current_room.id`, `player.current_room.get_exits()` and `player.travel(direction)` useful
 """
 def build_path(graph):
@@ -79,14 +116,6 @@ def build_path(graph):
 traversal_path = build_path(room_graph)
 
 
-"""
-To solve this path, you'll want to construct your own traversal graph. You start in room `0`, which contains exits `['n', 's', 'w', 'e']`. Your starting graph should look something like this:
-```
-{
-  0: {'n': '?', 's': '?', 'w': '?', 'e': '?'}
-}
-```
-"""
 # def build_traversal(player, traversal_path):
     # create a graph class - pulling in from graph file
 #     graph = Graph()
@@ -95,7 +124,6 @@ To solve this path, you'll want to construct your own traversal graph. You start
 #         print("FROM FUNCTION: ", i)
         
 # build_traversal(player, traversal_path)
-
 
 
 # TRAVERSAL TEST - DO NOT MODIFY
