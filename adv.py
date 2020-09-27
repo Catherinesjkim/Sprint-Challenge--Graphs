@@ -25,27 +25,23 @@ world = World()
 
 # You may uncomment the smaller graphs for development and testing purposes.
 
-# Output: TESTS PASSED: 3 moves, 3 rooms visited
-# map_file = "maps/test_line.txt"
+# Output - TESTS PASSED: 6 moves, 3 rooms visited
+map_file = "maps/test_line.txt"
 
-# Output: TESTS PASSED: 15 moves, 9 rooms visited
+# Output - TESTS PASSED: 18 moves, 9 rooms visited
 # map_file = "maps/test_cross.txt"
 
-# Output: TESTS PASSED: 21 moves, 12 rooms visited
+# Output - TESTS PASSED: 24 moves, 12 rooms visited
 # map_file = "maps/test_loop.txt"
 
-"""
-Output: You cannot move in that direction.
-You cannot move in that direction.
-You cannot move in that direction.
-TESTS FAILED: INCOMPLETE TRAVERSAL
-2 unvisited rooms
-"""
-map_file = "maps/test_loop_fork.txt"
+
+# Output - TESTS PASSED: 36 moves, 18 rooms visited
+# map_file = "maps/test_loop_fork.txt"
 
 # * __2__: Tests pass with `len(traversal_path) <= 2000`
-# Output: TESTS PASSED: 997 moves, 500 rooms visited
+# Output - TESTS PASSED: 1000 moves, 500 rooms visited
 # map_file = "maps/main_maze.txt"
+
 
 # Loads the map into a dictionary
 room_graph = literal_eval(open(map_file, "r").read())
@@ -69,61 +65,69 @@ To solve this path, you'll want to construct your own traversal graph. You start
     }
     ```
 You may find the commands `player.current_room.id`, `player.current_room.get_exits()` and `player.travel(direction)` useful
+
+Assume that the grid is unweighted and cells connect left, right, up and down
+
+A common approach to solving graph theory problems on grids is to first convert the grid to a familiar format such as an adjacency list/matrix
+
+User direction vector technique
+
+1. BFS
+2. DFT
 """
-def build_path(graph):
-    # stack that contains our current path
-    s = Stack()
-    # array that contains our returned paths
-    moves = []
-    # helps us determine if we hit a dead end
-    visited = set()
-    # initialize traversal with the 0 index room
-    s.push(0)
-   
-    while len(visited) < len(graph):
-        # get the id of the current room in the Stack
-        id = s.tail()
-        # mark as visited room/vertex/node
-        visited.add(id)
-        # get information of the current room (tuple data)
-        current_room = graph[id]
-        # dictionary of possible moves
-        rooms_dict = current_room[1]
-        # array to track if a room has not been visited yet
-        undiscovered = []
-        # store undiscovered rooms in relationship to the current room
-        for direction, room_id in rooms_dict.items():
-            if room_id not in visited:
-                undiscovered.append(room_id)
-        # assign the next room
-        # if we reched a dead end, back track
-        if len(undiscovered) > 0:
-            next_room = undiscovered[0]
-            s.push(next_room)
-        else:
-            s.pop()
-            next_room = s.tail()
-           
-        # survey the rooms around our current room. 
-        for direction, adjacent_id in rooms_dict.items():
-            # If the next move matches the room_id,
-            if adjacent_id == next_room:
-                # add that to move and walk
-                moves.append(direction)
-    
-    return moves
+# First, label the cells in the grid with numbers [0, n] where n = #rows x #columns - 0 to 6 non-inclusive (0 - 5)
+# Start at the start node coordinate by adding (sr, sc) to the queue
+# Then, we visit the adjacent unvisited neighbors and add them to the queue
+# If we have reached the end, and if we had a 2D prev matrix, we could regenerate the path by retracing our steps
+"""
+Plan:
+move player into starting room
+find all possible exits for room
+move in a direction and repeat this process
 
-traversal_path = build_path(room_graph)
+Plan to keep track of visited rooms/paths
+Set direction for reverse as well
 
+Based on this problem: storage space isnt an issue, getting this task accomplished quickly and as efficiently as possible is the main goal. For this, DFS(t) is most likely the ideal solution. 
+"""
 
-# def build_traversal(player, traversal_path):
-    # create a graph class - pulling in from graph file
-#     graph = Graph()
-    
-#     for i in player.current_room.get_exists():
-#         print("FROM FUNCTION: ", i)
+reverse_move = {'n': 's', 's': 'n', 'w': 'e', 'e': 'w'}
+
+def dftr_maze(current_room, visited=None):
+    # list directions while moving
+    directions = []
+    # creating a set to hold visited rooms if visited is None
+    if visited == None:
+        visited = set()
         
-# build_traversal(player, traversal_path)
+    # finding exits for current_room using player from player and get_exits from room
+    for move in player.current_room.get_exits():
+        # making moves using travel from player
+        player.travel(move)
+        
+        # reverse_move if already visited to find new path
+        if player.current_room in visited:
+            player.travel(reverse_move[move])
+        # if its a new room, do the following
+        else:
+            # add to visited stack
+            visited.add(player.current_room)
+            # adding this move to 'directions'
+            directions.append(move)
+            # recursive: repeating loop and adding directions ('\' is an escape character in Python)
+            directions = directions + \
+                dftr_maze(player.current_room, visited)
+            # go_back to previous room
+            player.travel(reverse_move[move])
+            # appending this move to 'directions'
+            directions.append(reverse_move[move])
+            
+    return directions
+
+# Fill this out with directions to walk
+# traversal_path = ['n', 'n']
+traversal_path = dftr_maze(player.current_room)
+print(dftr_maze)
 
 
 # TRAVERSAL TEST - DO NOT MODIFY
@@ -142,16 +146,15 @@ else:
     print(f"{len(room_graph) - len(visited_rooms)} unvisited rooms")
 
 
-
 #######
 # UNCOMMENT TO WALK AROUND - REPL code to walk around the map
 #######
-# player.current_room.print_room_description(player)
-# while True:
-#     cmds = input("-> ").lower().split(" ")
-#     if cmds[0] in ["n", "s", "e", "w"]:
-#         player.travel(cmds[0], True)
-#     elif cmds[0] == "q":
-#         break
-#     else:
-#         print("I did not understand that command.")
+player.current_room.print_room_description(player)
+while True:
+    cmds = input("-> ").lower().split(" ")
+    if cmds[0] in ["n", "s", "e", "w"]:
+        player.travel(cmds[0], True)
+    elif cmds[0] == "q":
+        break
+    else:
+        print("I did not understand that command.")
